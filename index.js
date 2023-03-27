@@ -283,14 +283,22 @@ res.json({Added:"Added Sucessfully"})
       await workbook.xlsx.readFile(excelFilePath);
       const worksheet = workbook.getWorksheet('Cash');
       let currentRow = 1;
+      let headerAdded = false;
       for (const csvFile of csvFiles) {
         await new Promise((resolve, reject) => {
           fs.createReadStream(csvFile)
             .pipe(csv())
             .on('data', (data) => {
+              if (!headerAdded) {
+                // Add header row to worksheet
+                Object.keys(data).forEach((key, index) => {
+                  worksheet.getCell(currentRow, index + 3).value = key;
+                });
+                currentRow++;
+                headerAdded = true;
+              }
               // Add data to the worksheet
               Object.values(data).forEach((value, index) => {
-                
                 worksheet.getCell(currentRow, index + 3).value = value;
               });
               currentRow++;
