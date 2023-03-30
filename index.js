@@ -272,18 +272,74 @@ app.get("/", async (req, res) => {
 
 
 
+// async function processCsvFiles(csvFiles = [], excelFilePath) {
+//   try {
+//     const workbook = new ExcelJS.Workbook();
+
+//     await workbook.xlsx.readFile(excelFilePath);
+//     let worksheet = workbook.getWorksheet('Cash2');
+//     if(!worksheet){
+//       worksheet = workbook.addWorksheet("Cash2")
+//     }
+   
+
+
+  
+//     let headerAdded = false;
+
+//     for (const file of csvFiles) {
+//       const content = await fs.promises.readFile(file, 'utf-8');
+//       const lines = content.split('\n');
+
+//       if (!headerAdded) {
+//         let headers = lines[1].split(',').map(header=>header.replace(/"/g,''));
+//         let row=worksheet.addRow()
+       
+//       for(let j=0;j<headers.length;j++){
+//         row.getCell(j+3).value=headers[j]
+//       }
+//         headerAdded = true;
+//       }
+
+//       for (let i = 2; i < lines.length; i++) {
+//         let values = lines[i].split(',').map(value=>value.replace(/"/g,''))
+//         let row = worksheet.addRow();
+  
+//         for (let j = 0; j < values.length; j++) { // start from second column
+//           row.getCell(j+3).value = values[j]; // shift to third column
+//         }
+//       }
+//       console.log(`CSV File ${file} have been processed successfully`);
+//     }      
+
+//     await workbook.xlsx.writeFile(excelFilePath);
+//     console.log('All CSV files have been processed successfully.');
+//   } catch (error) {
+//     console.error('Error occurred while processing CSV files:', error);
+//   }
+// }
+
+
+
+
 async function processCsvFiles(csvFiles = [], excelFilePath) {
   try {
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(excelFilePath);
-    let worksheet = workbook.getWorksheet('Cash');
-    if(!worksheet){
-      worksheet = workbook.addWorksheet("Cash")
-    }
- 
 
-  
+    await workbook.xlsx.readFile(excelFilePath);
+    let worksheet = workbook.getWorksheet('Cash2');
+    if(!worksheet){
+      worksheet = workbook.addWorksheet("Cash2")
+    }
+
+    let cashWorksheet = workbook.getWorksheet('Cash');
+    if(!cashWorksheet){
+      console.log('Cash worksheet not found');
+      return;
+    }
+
     let headerAdded = false;
+ 
 
     for (const file of csvFiles) {
       const content = await fs.promises.readFile(file, 'utf-8');
@@ -291,51 +347,61 @@ async function processCsvFiles(csvFiles = [], excelFilePath) {
 
       if (!headerAdded) {
         let headers = lines[1].split(',').map(header=>header.replace(/"/g,''));
-        let row=worksheet.addRow()
-       
-      for(let j=0;j<headers.length;j++){
-        row.getCell(j+3).value=headers[j]
-      }
+        let row=worksheet.addRow();
+
+      
+        row.getCell(1).value = cashWorksheet.getCell(1,1).value
+        row.getCell(1).formula = cashWorksheet.getCell(1,1).formula
+        row.getCell(2).value = cashWorksheet.getCell(1,2).value;
+        row.getCell(2).formula = cashWorksheet.getCell(1,2).formula;
+        row.getCell(2).style = cashWorksheet.getCell(1,2).style;
+        row.getCell(34).value=cashWorksheet.getCell(1,34).value;
+        row.getCell(34).formula=cashWorksheet.getCell(1,34).formula;
+        row.getCell(34).style=cashWorksheet.getCell(1,34).style;
+
+ 
+        
+        for(let j=0;j<headers.length;j++){
+          row.getCell(j+3).value=headers[j]
+        }
         headerAdded = true;
       }
+
+
 
       for (let i = 2; i < lines.length; i++) {
         let values = lines[i].split(',').map(value=>value.replace(/"/g,''))
         let row = worksheet.addRow();
-  
-        for (let j = 0; j < values.length; j++) { // start from second column
-          row.getCell(j+3).value = values[j]; // shift to third column
+
+       
+        row.getCell(1).value = cashWorksheet.getCell(i,1).value;
+        row.getCell(1).formula = cashWorksheet.getCell(i,1).formula;
+        row.getCell(2).value = cashWorksheet.getCell(i,2).value;
+        row.getCell(2).formula = cashWorksheet.getCell(i,2).formula;
+        row.getCell(2).style = cashWorksheet.getCell(i,2).style; 
+        row.getCell(34).value=cashWorksheet.getCell(i,34).value  
+        row.getCell(34).formula=cashWorksheet.getCell(i,34).formula  
+        row.getCell(34).style=cashWorksheet.getCell(i,34).style  
+
+        for (let j = 0; j < values.length; j++) { 
+          row.getCell(j+3).value = values[j]; 
         }
       }
+     
+      console.log(`CSV File ${file} has been processed successfully`);
+   
     }      
-
+   workbook.calcProperties.fullCalcOnLoad=true
+   if(cashWorksheet){
+   workbook.removeWorksheet("Cash")
+   worksheet.name="Cash"
+   }
     await workbook.xlsx.writeFile(excelFilePath);
-    console.log('CSV files have been processed successfully.');
+    console.log('All CSV files have been processed successfully.');
   } catch (error) {
     console.error('Error occurred while processing CSV files:', error);
   }
 }
-
-
-// const convertCsvToJson = async (csvPath=[],jsonFilePath) => {
-//   for (const file of csvPath) {
-//     try {
-//       let data = await csvtojson().fromFile(file);
-//       if (!data) {
-//         console.log(`Failed to convert ${file} to JSON`);
-//       } else {
-        
-//         fs.writeFileSync(`./${jsonFilePath}.json`, JSON.stringify(data, null, 2));
-//         console.log(`Converted ${file} to JSON: ${jsonFilePath}.json`);
-//       }
-//     } catch (err) {
-//       console.log(`Failed to convert ${file} to JSON: ${err}`);
-//     }
-//   }
-// };
-
-
-
 
 
 
